@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+import argparse
+import timeit
+import importlib
+from contextlib import contextmanager
+import sys, os
+import logging
+
+
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Run test scripts')
+    parser.add_argument('testfile', help="the file containing the tests to run")
+    parser.add_argument('files', help="the files to run the tests on", nargs="+")
+    parser.add_argument('-a, --all', dest="show_all", action='store_true', help="show the result of each individual test")
+    parser.add_argument('-t, --total', dest="total", action='store_true', help="show how long each file took to test total")
+    parser.add_argument('-r, --regex', dest="has_regex", action='store_true', help="enable this if you are using regex so that the cache can be cleared")
+    return parser.parse_args()
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+
+def read_testfile(filename):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+
+    function = ""
+    parameters = []
+    for line in lines:
+        line = line.strip()
+        if not function:
+            function = line.split('\n')[0]
+        else:
+            parameters.append(line.split('|'))
+
+    return function, parameters
+
+
+def get_command(function: str, parameters: list) -> str:
+    command = function+"("
+    for parameter in parameters:
+        command += parameter+','
+    command = command[:-1]
+    command += ")"
+    return command
+
+
+def display_time_comparison(filenames: list, times: list, show_total: bool):
+    zip_times = list(zip(list(filenames), times))
+    sorted_times = sorted(zip_times, key=lambda x: sum(x[1])/len(x[1]))
+    
+    max_length = max(len(filename) for filename in filenames)
+    max_length = max(max_length, 20) + 2
+    if show_total:
+        print(f' {"filename":^{max_length}} | {"average time":^25} | {"total time":^25} | {"% better":^15}')
+        print("-"*120)
+    else:
+        print(f' {"filename":^{max_length}} | {"average time":^25} | {"% better":^15}')
+        print("-"*80)
+
+    for ind, stime in enumerate(sorted_times):
+        avg = sum(stime[1])/len(stime[1])
+        string = f" {stime[0]:^{max_length}} | {avg:^25} |"
+        if show_total:
+            string +=  f" {sum(stime[1]):^25} |"
+        
+        if ind+1 < len(sorted_times):
+            next_avg = sum(sorted_times[ind+1][1])/len(sorted_times[ind+1][1])
+            percentage = (next_avg/avg-1)*100
+            string += f" {percentage:^10}%"
+        print(string)
+
+
+def fix_filenames(filenames: list) -> list:
+    # Fixes file names so something in the form of solutions/iter
+    # becomes solutions.iter
+    fixed = []
+    for filename in filenames:
+        if len(filename) > 3:
+            if filename[-3:] == ".py":
+                filename = filename[:-3]  # remove any .py endings
+        fixed.append(filename.replace('/','.'))
+    return fixed
+
+
+class SpecialFormatter(logging.Formatter):
+    FORMATS = {logging.DEBUG :"DBG: %(module)s: %(lineno)d: %(message)s",
+               logging.ERROR : "ERROR: %(message)s",
+               logging.INFO : "%(message)s",
+               'DEFAULT' : "%(levelname)s: %(message)s"}
+
+    def format(self, record):
+        self._fmt = self.FORMATS.get(record.levelno, self.FORMATS['DEFAULT'])
+        return logging.Formatter.format(self, record)
+
+
+if __name__ == "__main__":
+    sys.path.append(os.getcwd())
+
+    args = setup_argparse()
+
+    # setup logging formatting
+    hdlr = logging.StreamHandler(sys.stderr)
+    hdlr.setFormatter(SpecialFormatter())
+    logging.root.addHandler(hdlr)
+    if (args.show_all):
+        logging.root.setLevel(logging.INFO)
+        
+    function, parameters_list = read_testfile(args.testfile)
+    filenames = fix_filenames(args.files)
+    modules = [importlib.import_module(file) for file in filenames]
+    
+    all_times = [[] for _ in filenames]
+
+    for parameters in parameters_list:
+        command = get_command(function, parameters)
+
+        logging.info(f"{command}")
+
+        for i in range(len(filenames)):
+            error = None
+            with suppress_stdout(): # don't print to console when running these commands
+                try:
+                    time_taken = eval(f"timeit.timeit(lambda: modules[i].{command}, number=1)")
+
+                    if args.has_regex:  # clear regex cache
+                        eval(f"modules[i].re._cache.clear()")
+
+                except Exception as e:
+                    error = e
+
+            if error:
+                logging.error(f"ERROR: {error}")
+                logging.error(f"ERROR: {filenames[i]}.{command}")
+                exit()
+
+            all_times[i].append(time_taken)
+
+            logging.info(f"{filenames[i]} took {time_taken}")
+
+        logging.info("---------\n")
+
+    print("sorted best to worst\n")
+
+    display_time_comparison(list(args.files), all_times, args.total)
+
+
+

@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import re
+import argparse
+import os
+
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Fix codeforces README files automatically')
+    parser.add_argument('-d, --dir', dest="path", help="The directory of the file to change. Changes dir/README.md. Defaults to current directory")
+    parser.add_argument('-f, --file', dest="file", help="The file that you want to change. Defaults to README.md")
+    parser.add_argument('-r, --revert', dest="revert", action="store_true", help="Revert the .back file")
+    return parser.parse_args()
+
+def revert_backup():
+    if not os.path.exists(filepath+".back"):
+        raise FileNotFoundError("Backup file not found")
+
+    with open(filepath+".back", "r") as f:
+        lines = f.readlines()
+    with open(filepath, "w") as f:
+        f.write(''.join(lines))
+
+    os.remove(filepath+".back")
+
+
+if __name__ == "__main__":
+    parser = setup_argparse();
+    
+    path = parser.path or "./"
+    file = parser.file or "README.md"
+    filepath = path+file
+    
+    lines = []
+
+    if parser.revert:
+        revert_backup()
+        exit()
+
+    if os.path.exists(filepath+".back"):
+        # the backup file already exists so give a warning
+        raise FileExistsError("Backup file already exists. Please delete it before continuing")
+
+    with open(filepath, "r") as f:  # read the file
+        lines = f.readlines()
+
+    with open(filepath+".back", "w") as f:  # create a backup and write to it
+        f.write(''.join(lines))
+
+
+    # Fix the lines so the Input/Output code blocks work as do the headers
+    output_found = False
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+
+        if line in ["Input\n", "Output\n", "Example\n", "Note\n"]:
+            lines[i] = "### "+line
+        elif line == "outputCopy\n":
+            output_found = True
+            lines[i] = "Output\n"
+        elif line == "inputCopy\n":
+            lines[i] = "```\nInput\n"
+        
+        if output_found:
+            if line in ["Note\n", "inputCopy\n", "\n"]:
+                # insert ``` above
+                lines.insert(i, "```\n")
+                output_found = False
+        i += 1
+    
+    with open(filepath, "w") as f:  # write the fixed lines to the file.
+        f.write(''.join(lines))
+
+
