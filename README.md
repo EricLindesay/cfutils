@@ -1,7 +1,8 @@
 # codeforcesTools
 Some helpful tools for codeforces challenges  
-[runtest](#runtest)  
-[fix_readme](#fix-readme)  
+- [runtest](#runtest)  
+- [fix_readme](#fix-readme)  
+- [create_readme](#create-readme)
 
 ## Runtest
 [runtest](runtest)
@@ -45,3 +46,21 @@ fix_readme
 - -d, --dir \<PATH\> = The directory of the file you want to change. Defaults to current directory.  
 - -f, --file \<FILE\> = The file you want to change. Defaults to README.md.
 - r, --revert = Copy the contents of the backup (the .back file) into the main file.  
+
+
+## Create Readme
+[create_readme](make_readme/create_readme)
+
+This automatically creates a README file when given a link to a codeforces page.  
+It generates everything up to the solutions header. There may be issues with latex not being formatted correctly.  
+This means that fix_readme is no longer necessary.  
+
+```
+create_readme <url>
+```
+
+### Optional Parameters
+- -h, --help = help
+- -d, --dir \<PATH\> = The directory you want to store the file. Defaults to current directory.  
+- -f, --file \<FILE\> = The name of the file. Defaults to README.md.
+- --force = Ignore warnings

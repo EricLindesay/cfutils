@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import argparse, generate_readme
+from urllib.error import URLError
+import os, re
+
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Automatically create README files for codeforce links')
+    parser.add_argument('url', help="The codeforces url")
+    parser.add_argument('-d, --dir', dest="path", help="The directory where you want to store the file. Defaults to current directory")
+    parser.add_argument('-f, --file', dest="file", help="The file that you want to change. Defaults to README.md")
+    parser.add_argument('--force', dest="force", action="store_true", help="Ignore warnings")
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    parser = setup_argparse()
+
+    path = parser.path or "./"
+    file = parser.file or "README.md"
+    filepath = path+file
+
+    # check if there is already a readme and fail.
+    if os.path.exists(filepath) and not parser.force:
+        raise FileExistsError(f"File {filepath} already exists. Run with --force to overwrite")
+
+    r = re.search("codeforces", parser.url)
+    if r or parser.force:
+        generate_readme.gen_readme(parser.url, filepath)
+    else:
+        raise URLError("URL not for codeforces. Run with --force to overwrite")
+
