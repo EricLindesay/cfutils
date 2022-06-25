@@ -2,9 +2,10 @@
 Some helpful tools for codeforces challenges  
 - [runtest](#runtest)  
 - [fix_readme](#fix-readme)  
-- [create_readme](#create-readme)
+- [mkreadme](#mkreadme)
+- [cftodo](#cftodo)
 
-## Runtest
+## runtest
 [runtest](runtest)
 
 Runs a testfile on any number of python files to see which is faster. It tests speed, not results. More commonly used on codewars rather than codeforces.   
@@ -48,15 +49,16 @@ fix_readme
 - r, --revert = Copy the contents of the backup (the .back file) into the main file.  
 
 
-## Create Readme
-[create_readme](make_readme/create_readme)
+## mkreadme
+[mkreadme](mkreadme/mkreadme)
 
 This automatically creates a README file when given a link to a codeforces page.  
 It generates everything up to the solutions header. There may be issues with latex not being formatted correctly.  
 This means that fix_readme is no longer necessary.  
+It warns you if the readme file already exists.  
 
 ```
-create_readme <url>
+mkreadme <url>
 ```
 
 ### Optional Parameters
@@ -64,3 +66,17 @@ create_readme <url>
 - -d, --dir \<PATH\> = The directory you want to store the file. Defaults to current directory.  
 - -f, --file \<FILE\> = The name of the file. Defaults to README.md.
 - --force = Ignore warnings
+
+
+## cftodo
+[cftodo](cftodo)  
+
+This should only be used in the `/codeforces` directory.  
+This finds any unsolved challenges.  
+A challenge is solved if it contains the string "Solved!".  
+This string should by convention be at the end of the file, but may not be.  
+Prints the unsolved challenges to stdout.  
+```
+cftodo
+```
+

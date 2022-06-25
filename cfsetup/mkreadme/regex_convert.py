@@ -9,6 +9,8 @@ def convert_latex(latex: str) -> str:
     string = re.sub("\\\gt", ">", string)
     string = re.sub("\\\ldots", "...", string)
     string = re.sub("\\\dots", "...", string)
+    string = re.sub("\\\cdots", "*", string)
+    string = re.sub("\\\times", "*", string)
     return string
 
 def convert_tags(tags: str) -> str:
