@@ -1,4 +1,5 @@
-# codeforcesTools
+# cfutils
+
 Some helpful tools for codeforces challenges  
 - [runtest](#runtest)  
 - [fix_readme](#fix-readme)  
