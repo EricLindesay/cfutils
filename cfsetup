@@ -1,11 +1,44 @@
 #!/usr/bin/env python3
 
 from modules.generate_readme import gen_readme
+from modules.get_url_info import get_url_info
+from modules.format_name import format_name
+import re, os, argparse
+
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Automatically create README files for codeforce links')
+    parser.add_argument('url', help="The codeforces url")
+    parser.add_argument('--force', dest="force", action="store_true", help="Forcibly overwrite the current readme.")
+    return parser.parse_args()
+
+def convert_snake_case(string: str) -> str:
+    string = string.lower()
+    string = re.sub(" ", "_", string)
+    return string
 
 if __name__ == "__main__":
-    url = "https://codeforces.com/problemset/problem/1700/F"
-    filepath = "./temp_create_readme"
+    parser = setup_argparse()
+    #url = "https://codeforces.com/problemset/problem/1359/D"
 
-    gen_readme(url, filepath)
+    url_info = get_url_info(parser.url)
+    name_diff = format_name(url_info["name"])
 
+    print(name_diff)
+    name = re.search("[\w ]+", name_diff).group(0).strip()
+    diff = int(re.search("\d+", name_diff).group(0))
+    print(f"{name!r} {diff!r}")
+    
+    difficulty = str(diff) if diff > 1000 else "easy"
+    
+    name = convert_snake_case(name)
+    
+    if not os.path.exists(difficulty):
+        os.mkdir(difficulty)
+    if parser.force:
+        if not os.path.exists(difficulty+"/"+name):
+            os.mkdir(difficulty+"/"+name)
+    else:
+        os.mkdir(difficulty+"/"+name)
+
+    gen_readme(parser.url, difficulty+"/"+name+"/README.md")
 

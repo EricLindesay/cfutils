@@ -6,42 +6,22 @@ from .format_name import format_name
 import os
 
 def gen_readme(url:str, filename="README.md"):
-    problem_file = "problem.md"
-    example_file = "examples.md"
-    name_file = "name.md"
-    
-    get_url_info(url, problem_file, example_file, name_file)
-    format_problem_statement(problem_file)
-    format_example(example_file)
-    format_name(name_file)
-
-    problem = ""
-    with open(problem_file, "r") as f:
-        problem = f.read()
-
-    examples = ""
-    with open(example_file, "r") as f:
-        examples = f.read()
-
-    name = ""
-    with open(name_file, "r") as f:
-        name = f.read()
-
+    url_info = get_url_info(url)
+    url_info["name"] = format_name(url_info["name"])
+    url_info["problem"] = format_problem_statement(url_info["problem"])
+    url_info["examples"] = format_example(url_info["examples"])
+   
     with open(filename, "w") as f:
-        f.write(name+"\n")
+        f.write(url_info["name"]+"\n")
         f.write("- [Problem](#problem)\n")
         f.write("- [Solution](#solution)\n\n")        
         
         f.write("## Problem\n")
         f.write(f"[Problem Link]({url})  \n\n")
-        f.write(problem+"\n\n")
-        f.write(examples)
+        f.write(url_info["problem"]+"\n\n")
+        f.write(url_info["examples"])
 
         f.write("\n\n\n## Solution\n\n")
-
-    os.remove(problem_file)
-    os.remove(example_file)
-    os.remove(name_file)
 
 
 

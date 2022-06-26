@@ -4,6 +4,7 @@ Some helpful tools for codeforces challenges
 - [fix_readme](#fix-readme)  
 - [mkreadme](#mkreadme)
 - [cftodo](#cftodo)
+- [cfsetup](#cfsetup)
 
 ## runtest
 [runtest](runtest)
@@ -50,11 +51,11 @@ fix_readme
 
 
 ## mkreadme
-[mkreadme](mkreadme/mkreadme)
+[mkreadme](mkreadme)
 
 This automatically creates a README file when given a link to a codeforces page.  
 It generates everything up to the solutions header. There may be issues with latex not being formatted correctly.  
-This means that fix_readme is no longer necessary.  
+This means that fix_readme is no longer necessary for most cases.  
 It warns you if the readme file already exists.  
 
 ```
@@ -79,3 +80,15 @@ Prints the unsolved challenges to stdout.
 ```
 cftodo
 ```
+
+## cfsetup
+[cfsetup](cfsetup)  
+
+This is essentially an extension of mkreadme.  
+It puts the readme in the correct file based off name and difficulty.  
+Should be done in the codeforces directory.  
+
+```
+cfsetup <url>
+```
+

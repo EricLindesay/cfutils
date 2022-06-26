@@ -14,11 +14,9 @@ def extract_note(html: str) -> str:
 
     return default + string.rstrip()
 
-def format_example(filename="examples.md"):
-    lines = []
-    with open(filename, "r") as f:
-        lines = f.readlines()
-
+def format_example(example:str) -> str:
+    lines = example.split("\n")
+    
     # These should go at the start for formatting
     lines.insert(0, "### Examples\n```\nInput\n")
 
@@ -35,8 +33,7 @@ def format_example(filename="examples.md"):
             lines_to_write = lines[:i+1]  # after the notes, we don't want to include any of the final <div>s or newlines
             break
 
-    with open(filename, "w") as f:
-        f.write(''.join(lines_to_write))
+    return ''.join(lines_to_write)
 
 
 if __name__ == "__main__":
