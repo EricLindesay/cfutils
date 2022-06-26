@@ -1,4 +1,8 @@
-import get_url_info as gui, format_problem_statement as fps, format_example as fe, format_name as fn
+#import getURLInfo as gui, formatProblemStatement as fps, formatExample as fe, formatName as fn
+from .get_url_info import get_url_info
+from .format_problem import format_problem_statement
+from .format_example import format_example
+from .format_name import format_name
 import os
 
 def gen_readme(url:str, filename="README.md"):
@@ -6,10 +10,10 @@ def gen_readme(url:str, filename="README.md"):
     example_file = "examples.md"
     name_file = "name.md"
     
-    gui.get_url_info(url, problem_file, example_file, name_file)
-    fps.format_problem_statement(problem_file)
-    fe.format_example(example_file)
-    fn.format_name(name_file)
+    get_url_info(url, problem_file, example_file, name_file)
+    format_problem_statement(problem_file)
+    format_example(example_file)
+    format_name(name_file)
 
     problem = ""
     with open(problem_file, "r") as f:

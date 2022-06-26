@@ -79,4 +79,3 @@ Prints the unsolved challenges to stdout.
 ```
 cftodo
 ```
-

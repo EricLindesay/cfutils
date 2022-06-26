@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+from modules.generate_readme import gen_readme
+
+if __name__ == "__main__":
+    url = "https://codeforces.com/problemset/problem/1700/F"
+    filepath = "./temp_create_readme"
+
+    gen_readme(url, filepath)
+
+

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import argparse, generate_readme
+import argparse
+from modules.generate_readme import gen_readme
 from urllib.error import URLError
 import os, re
 
@@ -12,6 +13,18 @@ def setup_argparse():
     parser.add_argument('--force', dest="force", action="store_true", help="Ignore warnings")
     return parser.parse_args()
 
+def mkreadme(url: str, filepath: str, force=False):
+    # check if there is already a readme and fail.
+    if os.path.exists(filepath) and not parser.force:
+        raise FileExistsError(f"File {filepath} already exists. Run with --force to overwrite")
+
+    r = re.search("codeforces", parser.url)
+    if r or force:
+        gen_readme(parser.url, filepath)
+    else:
+        raise URLError("URL not for codeforces. Run with --force to overwrite")
+
+
 if __name__ == "__main__":
     parser = setup_argparse()
 
@@ -19,13 +32,5 @@ if __name__ == "__main__":
     file = parser.file or "README.md"
     filepath = path+file
 
-    # check if there is already a readme and fail.
-    if os.path.exists(filepath) and not parser.force:
-        raise FileExistsError(f"File {filepath} already exists. Run with --force to overwrite")
-
-    r = re.search("codeforces", parser.url)
-    if r or parser.force:
-        generate_readme.gen_readme(parser.url, filepath)
-    else:
-        raise URLError("URL not for codeforces. Run with --force to overwrite")
+    mkreadme(parser.url, filepath, parser.force)
 

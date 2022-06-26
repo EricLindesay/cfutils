@@ -1,13 +1,14 @@
-import re, regex_convert
+import re
+from .regex_convert import convert_tags, convert_random_specials, convert_latex
 
 def extract_note(html: str) -> str:
     default = "```\n### Note\n"
     r = re.search("<p>.*</p>", html)
     if r:
         string = r.group(0)
-        string = regex_convert.convert_latex(string)
-        string = regex_convert.convert_random_specials(string)
-        string = regex_convert.convert_tags(string)
+        string = convert_latex(string)
+        string = convert_random_specials(string)
+        string = convert_tags(string)
     else:
         string = html
 
