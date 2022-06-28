@@ -86,11 +86,15 @@ runtest \<testfile\> \<files to test\>
 - -a, --all    = show the result of each test  
 - -t, --total  = show the total time taken for the tests  
 - -c, --cpp    = whether the file is a c++ file  
+- --timeout \<int\> = how long to run the program before it times out (seconds)
 
 ### Testfile Format
-testcase  
--  
-testcase  
-
+```
+testcase 1  
+\-----  
+testcase 2  
+\-----   
+testcase 3    
+```
 Testcases can be multiple lines.
 

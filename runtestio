@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+import argparse
+import timeit
+from contextlib import contextmanager
+import sys, os, subprocess
+import logging
+
+
+def setup_argparse():
+    parser = argparse.ArgumentParser(description='Run test scripts')
+    parser.add_argument('testfile', help="the file containing the tests to run")
+    parser.add_argument('files', help="the files to run the tests on", nargs="+")
+    parser.add_argument('-a, --all', dest="show_all", action='store_true', help="show the result of each individual test")
+    parser.add_argument('-t, --total', dest="total", action='store_true', help="show how long each file took to test total")
+    parser.add_argument('-c, --cpp', dest="is_cpp", action='store_true', help="enable this if you are using a cpp file rather than an executable file")
+    parser.add_argument('--timeout', dest="timeout", type=int, default=None, help="time to run each test before it should timeout")
+    return parser.parse_args()
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
+
+
+def read_testfile(filename):
+    with open(filename, 'r') as f:
+        lines = f.read()
+
+    # split each individual test by -
+    return_lines = [line.strip() for line in lines.split("-----")]
+    return return_lines
+
+
+def display_time_comparison(filenames: list[str], times: list[float], show_total: bool):
+    zip_times = list(zip(list(filenames), times))
+    sorted_times = sorted(zip_times, key=lambda x: sum(x[1])/len(x[1]))
+    
+    max_length = max(len(filename) for filename in filenames)
+    max_length = max(max_length, 20) + 2
+    if show_total:
+        print(f' {"filename":^{max_length}} | {"average time":^25} | {"total time":^25} | {"% better":^15}')
+        print("-"*120)
+    else:
+        print(f' {"filename":^{max_length}} | {"average time":^25} | {"% better":^15}')
+        print("-"*80)
+
+    for ind, stime in enumerate(sorted_times):
+        avg = sum(stime[1])/len(stime[1])
+        string = f" {stime[0]:^{max_length}} | {avg:^25} |"
+        if show_total:
+            string +=  f" {sum(stime[1]):^25} |"
+        
+        if ind+1 < len(sorted_times):
+            next_avg = sum(sorted_times[ind+1][1])/len(sorted_times[ind+1][1])
+            percentage = (next_avg/avg-1)*100
+            string += f" {percentage:^10}%"
+        print(string)
+
+
+class SpecialFormatter(logging.Formatter):
+    FORMATS = {logging.DEBUG :"DBG: %(module)s: %(lineno)d: %(message)s",
+               logging.ERROR : "ERROR: %(message)s",
+               logging.INFO : "%(message)s",
+               'DEFAULT' : "%(levelname)s: %(message)s"}
+
+    def format(self, record):
+        self._fmt = self.FORMATS.get(record.levelno, self.FORMATS['DEFAULT'])
+        return logging.Formatter.format(self, record)
+
+def setup_logging(show_all=False):
+    hdlr = logging.StreamHandler(sys.stderr)
+    hdlr.setFormatter(SpecialFormatter())
+    logging.root.addHandler(hdlr)
+    if (show_all):
+        logging.root.setLevel(logging.INFO)
+    
+def compile_files(filenames: list[str]):
+    new_filenames = []
+    for filename in filenames:
+        if filename[-4:] != ".cpp":
+            raise Exception("File not a cpp file")
+        new_filenames.append(filename[:-4]+".out")
+        subprocess.run(["g++", filename, "-o", f"{filename[:-4]}.out"])
+    return new_filenames
+
+def before_exit():
+    stdin_file.close()
+    stdout_file.close()
+    subprocess.run(["rm", "temp_to_destroy10923"])
+    subprocess.run(["rm", "temp_to_destroy_another_this_is_never_going"])
+    if args.is_cpp:
+        for file in filenames:
+            subprocess.run(["rm", file])
+
+if __name__ == "__main__":
+    sys.path.append(os.getcwd())
+
+    args = setup_argparse()
+
+    # setup logging formatting
+    setup_logging(args.show_all)
+
+    tests = read_testfile(args.testfile)
+    filenames = args.files
+    
+    if args.is_cpp:
+        # we need to compile the files
+        filenames = compile_files(filenames)
+
+    all_times = [[] for _ in filenames]
+    stdout_file = open("temp_to_destroy_another_this_is_never_going", "w")
+
+    for test_ind, test in enumerate(tests):
+        logging.info(f"{test}")
+        
+        stdin_file = open("temp_to_destroy10923", "w")
+        stdin_file.write(test)
+        
+        for i in range(len(filenames)):
+            try:
+                time_taken = timeit.timeit(lambda: subprocess.run([filenames[i]], stdin=stdin_file, stdout=stdout_file, timeout=args.timeout), number=1)    
+            except Exception as e:
+                logging.error(f"ERROR: {e}")
+                logging.error(f"ERROR: {filenames[i]}  Test {test_ind}")
+                before_exit()
+                exit()
+
+            all_times[i].append(time_taken)
+
+            logging.info(f"{filenames[i]} took {time_taken}")
+
+        stdin_file.close()
+        logging.info("---------\n")
+
+    stdout_file.close()
+
+    # delete the .out files if necessary
+    if args.is_cpp:
+        for file in filenames:
+            subprocess.run(["rm", file])
+    subprocess.run(["rm", "temp_to_destroy10923"])
+    subprocess.run(["rm", "temp_to_destroy_another_this_is_never_going"])
+
+
+    print("sorted best to worst\n")
+    display_time_comparison(list(args.files), all_times, args.total)
+
+
+
