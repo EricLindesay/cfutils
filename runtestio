@@ -116,7 +116,7 @@ if __name__ == "__main__":
     stdout_file = open("temp_to_destroy_another_this_is_never_going", "w")
 
     for test_ind, test in enumerate(tests):
-        logging.info(f"{test}")
+        logging.info(f"Test {test_ind}")
         
         stdin_file = open("temp_to_destroy10923", "w")
         stdin_file.write(test)
