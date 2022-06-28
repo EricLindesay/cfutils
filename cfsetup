@@ -26,7 +26,6 @@ if __name__ == "__main__":
     print(name_diff)
     name = re.search("[\w ]+", name_diff).group(0).strip()
     diff = int(re.search("\d+", name_diff).group(0))
-    print(f"{name!r} {diff!r}")
     
     difficulty = str(diff) if diff > 1000 else "easy"
     
