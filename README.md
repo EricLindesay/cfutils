@@ -75,6 +75,7 @@ cfsetup <url>
 ## runtestio
 [runtestio](runtestio)
 
+Run Test IO name due to it testing the IO using stdin, rather than a function like runtest tests.  
 Runs a test file using stdin as the input to the file. This can run any type of file but was meant to be used on c++ codeforces files.  
 
 ```
