@@ -28,6 +28,6 @@ def convert_tags(tags: str) -> str:
 def convert_random_specials(string: str) -> str:
     string = re.sub("\$\$\$", "`", string)
     string = re.sub("\\\,", ",", string)
-    string = re.sub("&quot", "\"", string)
+    string = re.sub("&quot;", "\"", string)
     return string
 

@@ -1,6 +1,6 @@
 # cfutils
 
-Some helpful tools for codeforces challenges  
+Some helpful tools for codeforces challenges.  
 - [runtest](#runtest)  
 - [fix_readme](#fix-readme)  
 - [mkreadme](#mkreadme)
@@ -78,6 +78,7 @@ This finds any unsolved challenges.
 A challenge is solved if it contains the string "Solved!".  
 This string should by convention be at the end of the file, but may not be.  
 Prints the unsolved challenges to stdout.  
+
 ```
 cftodo
 ```
