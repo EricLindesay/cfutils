@@ -19,7 +19,7 @@ def convert_tags(tags: str) -> str:
     string = re.sub("</p>", "  \n\n", string)
     string = re.sub("</div>", "", string)
     string = re.sub("<li>", "-", string)
-    string = re.sub("</li>", "", string)
+    string = re.sub("</li>", "\n", string)
     string = re.sub("</?ul>", "", string)
     string = re.sub("</?ol>", "", string)
     string = re.sub("<.+?>", "`", string)  # if there is a random tag we haven't considered, just replace it with `
