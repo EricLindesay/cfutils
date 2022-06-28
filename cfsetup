@@ -20,10 +20,10 @@ if __name__ == "__main__":
     parser = setup_argparse()
     #url = "https://codeforces.com/problemset/problem/1359/D"
 
+    print("Making Folder")
     url_info = get_url_info(parser.url)
     name_diff = format_name(url_info["name"])
 
-    print(name_diff)
     name = re.search("[\w ]+", name_diff).group(0).strip()
     diff = int(re.search("\d+", name_diff).group(0))
     
@@ -39,5 +39,6 @@ if __name__ == "__main__":
     else:
         os.mkdir(difficulty+"/"+name)
 
+    print("Making Readme")
     gen_readme(parser.url, difficulty+"/"+name+"/README.md")
 

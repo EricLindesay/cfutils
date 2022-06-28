@@ -1,33 +1,11 @@
 # cfutils
 
 Some helpful tools for codeforces challenges.  
-- [runtest](#runtest)  
 - [fix_readme](#fix-readme)  
 - [mkreadme](#mkreadme)
 - [cftodo](#cftodo)
 - [cfsetup](#cfsetup)
-
-## runtest
-[runtest](runtest)
-
-Runs a testfile on any number of python files to see which is faster. It tests speed, not results. More commonly used on codewars rather than codeforces.   
-
-```
-runtest \<testfile\> \<python files to test\>
-```
-
-### Optional Params
-- -h, --help   = help  
-- -a, --all    = show the result of each test  
-- -t, --total  = show the total time taken for the tests  
-- -r, --regex  = whether it uses regex or not. This is to clear the cache after each test.  
-
-### Testfile Format
-function_to_run  
-arg1 arg2 arg3...  
-arg1 arg2 arg3...  
-arg1 arg2 arg3...  
-arg1 arg2 arg3...  
+- [runtestio](#runtestio)  
 
 
 ## Fix Readme
@@ -93,4 +71,26 @@ Should be done in the codeforces directory.
 ```
 cfsetup <url>
 ```
+
+## runtestio
+[runtestio](runtestio)
+
+Runs a test file using stdin as the input to the file. This can run any type of file but was meant to be used on c++ codeforces files.  
+
+```
+runtest \<testfile\> \<files to test\>
+```
+
+### Optional Params
+- -h, --help   = help  
+- -a, --all    = show the result of each test  
+- -t, --total  = show the total time taken for the tests  
+- -c, --cpp    = whether the file is a c++ file  
+
+### Testfile Format
+testcase  
+-  
+testcase  
+
+Testcases can be multiple lines.
 
