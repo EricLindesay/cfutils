@@ -87,6 +87,7 @@ runtest \<testfile\> \<files to test\>
 - -a, --all    = show the result of each test  
 - -t, --total  = show the total time taken for the tests  
 - -c, --cpp    = whether the file is a c++ file  
+- -o, --output = print program output to stdout
 - --timeout \<int\> = how long to run the program before it times out (seconds)
 
 ### Testfile Format

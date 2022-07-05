@@ -12,6 +12,7 @@ def setup_argparse():
     parser.add_argument('-a, --all', dest="show_all", action='store_true', help="show the result of each individual test")
     parser.add_argument('-t, --total', dest="total", action='store_true', help="show how long each file took to test total")
     parser.add_argument('-c, --cpp', dest="is_cpp", action='store_true', help="enable this if you are using a cpp file rather than an executable file")
+    parser.add_argument('-o, --output', dest="show_output", action='store_true', help="print program output to stdout")
     parser.add_argument('--timeout', dest="timeout", type=float, default=None, help="time to run each test before it should timeout")
     return parser.parse_args()
 
@@ -61,6 +62,7 @@ class SpecialFormatter(logging.Formatter):
         self._fmt = self.FORMATS.get(record.levelno, self.FORMATS['DEFAULT'])
         return logging.Formatter.format(self, record)
 
+
 def setup_logging(show_all=False):
     hdlr = logging.StreamHandler(sys.stderr)
     hdlr.setFormatter(SpecialFormatter())
@@ -68,6 +70,7 @@ def setup_logging(show_all=False):
     if (show_all):
         logging.root.setLevel(logging.INFO)
     
+
 def compile_files(filenames: list[str]):
     new_filenames = []
     for filename in filenames:
@@ -77,14 +80,18 @@ def compile_files(filenames: list[str]):
         subprocess.run(["g++", filename, "-o", f"{filename[:-4]}.out"])
     return new_filenames
 
+
 def before_exit():
     stdin_file.close()
-    stdout_file.close()
-    subprocess.run(["rm", "temp_to_destroy10923"])
-    subprocess.run(["rm", "temp_to_destroy_another_this_is_never_going"])
+    if stdout_file:
+        stdout_file.close()
+    subprocess.run(["rm", "./stdin"])
+    if not args.show_output:
+        subprocess.run(["rm", "./stdout"])
     if args.is_cpp:
         for file in filenames:
             subprocess.run(["rm", file])
+
 
 if __name__ == "__main__":
     sys.path.append(os.getcwd())
@@ -100,19 +107,25 @@ if __name__ == "__main__":
     if args.is_cpp:
         # we need to compile the files
         filenames = compile_files(filenames)
-
+    
     all_times = [[] for _ in filenames]
-    stdout_file = open("temp_to_destroy_another_this_is_never_going", "w")
 
+    stdout_file = open("./stdout", "w")
+    
     for test_ind, test in enumerate(tests):
         logging.info(f"Test {test_ind}")
         
-        stdin_file = open("temp_to_destroy10923", "w")
-        stdin_file.write(test)
-        
-        for i in range(len(filenames)):
+        with open("./stdin", "w") as f:
+            f.write(test)
+        stdin_file = open("./stdin", "r")
+
+
+        for i in range(len(filenames)):           
             try:
-                time_taken = timeit.timeit(lambda: subprocess.run([filenames[i]], stdin=stdin_file, stdout=stdout_file, timeout=args.timeout), number=1)    
+                usage1 = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+                subprocess.run([filenames[i]], stdin=stdin_file, stdout=stdout_file, timeout=args.timeout)
+                usage2 = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
+                time_taken = usage2-usage1
             except Exception as e:
                 logging.error(f"ERROR: {e}")
                 logging.error(f"ERROR: {filenames[i]}  Test {test_ind}")
@@ -126,15 +139,17 @@ if __name__ == "__main__":
         stdin_file.close()
         logging.info("---------\n")
 
-    stdout_file.close()
+    if stdout_file:
+        stdout_file.close()
 
     # delete the .out files if necessary
     if args.is_cpp:
         for file in filenames:
             subprocess.run(["rm", file])
-    subprocess.run(["rm", "temp_to_destroy10923"])
-    subprocess.run(["rm", "temp_to_destroy_another_this_is_never_going"])
-
+    
+    subprocess.run(["rm", "./stdin"])
+    if not args.show_output:
+        subprocess.run(["rm", "./stdout"])
 
     print("sorted best to worst\n")
     display_time_comparison(list(args.files), all_times, args.total)
