@@ -62,7 +62,6 @@ def format_example(example:str) -> str:
     if len(lines) > 1:
         # These should go at the start for formatting
         lines.insert(0, "### Examples\n")
-        print(lines)
 
         for i, line in enumerate(lines):
             if re.search("class=\"output\"", line):  # Format output inside ```
