@@ -38,7 +38,6 @@ def one_liner(one_line: str) -> str:
 
     # now split by \n and fix everything
     lines = string.strip().split("\n")
-    print(lines)
     for i, line in enumerate(lines):
         if i == 0:  # the first line is the ### Examples one
             lines[i] = regex_convert.convert_tags(line)

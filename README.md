@@ -3,7 +3,7 @@
 Some helpful tools for codeforces challenges.  
 - [fix_readme](#fix-readme)  
 - [mkreadme](#mkreadme)
-- [cftodo](#cftodo)
+- [cflist](#cflist)
 - [cfsetup](#cfsetup)
 - [runtestio](#runtestio)  
 
@@ -48,18 +48,25 @@ mkreadme <url>
 - --force = Ignore warnings
 
 
-## cftodo
-[cftodo](cftodo)  
+## cflist
+[cflist](cflist)  
 
 This should only be used in the `/codeforces` directory.  
-This finds any unsolved challenges.  
+This has two optional parameters, no parameters means it shows solved and unsolved problems.
+The parameters can be used to show only one of those categories.  
 A challenge is solved if it contains the string "Solved!".  
 This string should by convention be at the end of the file, but may not be.  
-Prints the unsolved challenges to stdout.  
+Prints the challenges to stdout.  
 
 ```
-cftodo
+cflist
 ```
+
+### Optional Parameters
+- -h, --help = help
+- -u, --unsolved = List incomplete challenges  
+- -s, --solved = List complete challenges
+
 
 ## cfsetup
 [cfsetup](cfsetup)  
@@ -93,9 +100,9 @@ runtest \<testfile\> \<files to test\>
 ### Testfile Format
 ```
 testcase 1  
-\-----  
+-----  
 testcase 2  
-\-----   
+-----   
 testcase 3    
 ```
 Testcases can be multiple lines.
