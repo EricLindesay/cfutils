@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+import argparse
+import os, re
+
+def in_cwd(file: str) -> bool:
+    r = re.search("\/.*\/", file)  # if it has two /, its not in cwd
+    if r:
+        return False
+    return True
+
+
+def problem_solved(file: str) -> bool:
+    read_file = ""
+    with open(file, "r") as f:
+        read_file = f.read()
+    
+    r = re.search("Solved!", read_file)
+    if r:
+        return True
+    return False
+
+
+def sort_by_difficulty(arr: list):
+    # create another list with the weights of each of them, zip and sort.
+    weights = []
+    for a in arr:
+        str1 = a[2:6]
+        if str1 == "easy":
+            weights.append(1000)
+        else:
+            weights.append(int(str1))
+
+    sorted_zip = sorted(zip(weights, arr))  # sort the original array by the weights
+    return [x[1] for x in sorted_zip]
+
+
+def setup_argparse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description='List codeforces challenges')
+    parser.add_argument('-t, --todo', dest="unsolved", action="store_true", help="List incomplete challenges")
+    parser.add_argument('-c, --completed', dest="solved", action="store_true", help="List completed challenges")
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    # look in ./<difficulty>/<problem_name>/README.md
+    # does the readme contain "Solved!".
+    # if not, add it to the list of unfinished to print.
+    parser = setup_argparse()
+    show_solved = parser.solved or not parser.unsolved
+    show_unsolved = parser.unsolved or not parser.solved
+
+    files = [root
+             for root, dirs, files in os.walk("./")  # look in subfolders
+             for name in files
+             if name == "README.md"]  # if its the readme, we want it
+
+    # i want them displayed, sorted by difficulty with easy being the lowest.
+
+    solved = []
+    unsolved = []
+    for file in files:
+        if not in_cwd(file):  # ignore readmes in the main folder
+            if problem_solved(file+"/README.md"):
+                solved.append(file)
+            else:
+                unsolved.append(file)
+
+    if show_solved:
+        solved = sort_by_difficulty(solved)
+        print("Solved Problems:")
+        [print(file) for file in solved]
+    if show_unsolved:
+        if show_solved:
+            print("")  # newline for formatting
+
+        unsolved = sort_by_difficulty(unsolved)
+        print("Unsolved Problems:")
+        [print(file) for file in unsolved]
+

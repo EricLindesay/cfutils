@@ -64,8 +64,8 @@ cflist
 
 ### Optional Parameters
 - -h, --help = help
-- -u, --unsolved = List incomplete challenges  
-- -s, --solved = List complete challenges
+- -t, --todo = List incomplete challenges  
+- -c, --completed = List completed challenges
 
 
 ## cfsetup
