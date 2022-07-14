@@ -1,37 +1,51 @@
 #!/usr/bin/env python3
-
 import argparse
 import os
 
-def setup_argparse():
+
+def setup_argparse() -> argparse.ArgumentParser:
+    # Setup argparse arguments.
     parser = argparse.ArgumentParser(description='Fix codeforces README files automatically')
-    parser.add_argument('-d, --dir', dest="path", help="The directory of the file to change. Changes dir/README.md. Defaults to current directory")
-    parser.add_argument('-f, --file', dest="file", help="The file that you want to change. Defaults to README.md")
-    parser.add_argument('-r, --revert', dest="revert", action="store_true", help="Revert the .back file")
+    parser.add_argument('-d, --dir', 
+                        dest="path", 
+                        help="The directory of the file to change. Changes dir/README.md. Defaults to current directory")
+    parser.add_argument('-f, --file', 
+                        dest="file", 
+                        help="The file that you want to change. Defaults to README.md")
+    parser.add_argument('-r, --revert', 
+                        dest="revert", 
+                        action="store_true", 
+                        help="Revert the .back backup file")
     return parser.parse_args()
 
-def revert_backup():
+
+def revert_backup() -> None:
+    # if the backup file doesn't exist then raise an error.
     if not os.path.exists(filepath+".back"):
         raise FileNotFoundError("Backup file not found")
 
+    # open the backup file, copying all of it's contents
     with open(filepath+".back", "r") as f:
-        lines = f.readlines()
-    with open(filepath, "w") as f:
-        f.write(''.join(lines))
+        lines = f.read()
 
+    # write these contents back into the original file
+    with open(filepath, "w") as f:
+        f.write(lines)
+
+    # remove the backup file
     os.remove(filepath+".back")
 
 
 if __name__ == "__main__":
+    # get the arguments
     parser = setup_argparse();
     
     path = parser.path or "./"
     file = parser.file or "README.md"
     filepath = path+file
     
-    lines = []
-
     if parser.revert:
+        # if they want to revert the changes, revert them and then stop.
         revert_backup()
         exit()
 
@@ -39,10 +53,11 @@ if __name__ == "__main__":
         # the backup file already exists so give a warning
         raise FileExistsError("Backup file already exists. Please delete it before continuing")
 
-    with open(filepath, "r") as f:  # read the file
+    lines = []
+    with open(filepath, "r") as f:  # read the readme as it currently is
         lines = f.readlines()
 
-    with open(filepath+".back", "w") as f:  # create a backup and write to it
+    with open(filepath+".back", "w") as f:  # create a backup and write the original readme to it
         f.write(''.join(lines))
 
 
@@ -52,15 +67,15 @@ if __name__ == "__main__":
     while i < len(lines):
         line = lines[i]
 
-        if line in ["Input\n", "Output\n", "Example\n", "Note\n"]:
+        if line in ["Input\n", "Output\n", "Example\n", "Note\n"]:  # fix the headers
             lines[i] = "### "+line
-        elif line == "outputCopy\n":
+        elif line == "outputCopy\n":  # fix the output code block
             output_found = True
             lines[i] = "Output\n"
-        elif line == "inputCopy\n":
+        elif line == "inputCopy\n":  # fix the input code block
             lines[i] = "```\nInput\n"
         
-        if output_found:
+        if output_found:  # make sure the code block actually breaks properly
             if line in ["Note\n", "inputCopy\n", "\n"]:
                 # insert ``` above
                 lines.insert(i, "```\n")

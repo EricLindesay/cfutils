@@ -1,54 +1,108 @@
 #!/usr/bin/env python3
 import argparse
-import timeit
-import sys, os, subprocess, resource
+import sys
+import os
+import subprocess
+import resource
 import logging
 
 
-def setup_argparse():
+def setup_argparse() -> argparse.ArgumentParser:
+    # Setup argparse arguments.
     parser = argparse.ArgumentParser(description='Run test scripts')
-    parser.add_argument('testfile', help="the file containing the tests to run")
-    parser.add_argument('files', help="the files to run the tests on", nargs="+")
-    parser.add_argument('-a, --all', dest="show_all", action='store_true', help="show the result of each individual test")
-    parser.add_argument('-t, --total', dest="total", action='store_true', help="show how long each file took to test total")
-    parser.add_argument('-c, --cpp', dest="is_cpp", action='store_true', help="enable this if you are using a cpp file rather than an executable file")
-    parser.add_argument('-o, --output', dest="show_output", action='store_true', help="print program output to stdout")
-    parser.add_argument('--timeout', dest="timeout", type=float, default=None, help="time to run each test before it should timeout")
+    parser.add_argument('testfile', 
+                        help="the file containing the tests to run")
+    parser.add_argument('files', 
+                        help="the files to run the tests on", nargs="+")
+    parser.add_argument('-a, --all', 
+                        dest="show_all",        
+                        action='store_true', 
+                        help="show the result of each individual test")
+    parser.add_argument('-t, --total', 
+                        dest="total", 
+                        action='store_true', 
+                        help="show how long each file took to test total")
+    parser.add_argument('-c, --cpp', 
+                        dest="is_cpp", 
+                        action='store_true',
+                        help="enable this if you are using a cpp file rather than an executable file")
+    parser.add_argument('-o, --output', 
+                        dest="show_output", 
+                        action='store_true', 
+                        help="print program output to stdout")
+    parser.add_argument('--timeout', 
+                        dest="timeout", 
+                        type=float, 
+                        default=None, 
+                        help="time to run each test before it should timeout")
     return parser.parse_args()
 
 
-def read_testfile(filename):
+def read_testfile(filename: str) -> list[str]:
+    # Read the test file, splitting it up based on each test, seperated by -----.
+    # Return the list of tests arguments.
     with open(filename, 'r') as f:
         lines = f.read()
 
-    # split each individual test by -
+    # split each individual test by -----
     return_lines = [line.strip() for line in lines.split("-----")]
     return return_lines
 
 
-def display_time_comparison(filenames: list[str], times: list[float], show_total: bool):
+def sort_by_average(filenames: list[str], times: list[float]) -> list[(str,float)]:
+    # sort the filenames by average time taken. 
+    # Returns the sorted, zipped list.
+    # The zipped list is zipped with filename and with the array of all times for all tests
     zip_times = list(zip(list(filenames), times))
     sorted_times = sorted(zip_times, key=lambda x: sum(x[1])/len(x[1]))
-    
+    return sorted_times
+
+
+def print_header(filenames: list[str], show_total: bool) -> int:
+    # Print the header
+    # Something like "filename | average time | total time | % better"
+    # Make sure that the column titles are formatted correctly.
+    # Return the length of the first column.
     max_length = max(len(filename) for filename in filenames)
-    max_length = max(max_length, 20) + 2
+    max_length = max(max_length, 20) + 2  # get the max length of the "filename" column
+
     if show_total:
+        # if you want to show the total time taken, add it as one of the columns
         print(f' {"filename":^{max_length}} | {"average time":^25} | {"total time":^25} | {"% better":^15}')
         print("-"*120)
     else:
         print(f' {"filename":^{max_length}} | {"average time":^25} | {"% better":^15}')
         print("-"*80)
 
-    for ind, stime in enumerate(sorted_times):
-        avg = sum(stime[1])/len(stime[1])
-        string = f" {stime[0]:^{max_length}} | {avg:^25} |"
+    return max_length
+
+
+def display_time_comparison(filenames: list[str], times: list[float], show_total: bool) -> None:
+    # sort the times based on average time.
+    sorted_times = sort_by_average(filenames, times)
+    
+    # print the header and find the length of the first column
+    max_length = print_header(filenames, show_total)
+
+    # loop through the results for each of the files.
+    for ind, zipped_times in enumerate(sorted_times):
+        filename = zipped_times[0]
+        times = zipped_times[1]
+
+        # calculate the average time, print the filename and the average time
+        avg = sum(times)/len(times)
+        string = f" {filename:^{max_length}} | {avg:^25} |"
+
+        # if you want to show the total time, also print that.
         if show_total:
-            string +=  f" {sum(stime[1]):^25} |"
+            string +=  f" {sum(times):^25} |"
         
+        # if this isn't the last time, then print what % better this solution is compared to the next one down.
         if ind+1 < len(sorted_times):
             next_avg = sum(sorted_times[ind+1][1])/len(sorted_times[ind+1][1])
             percentage = (next_avg/avg-1)*100
             string += f" {percentage:^10}%"
+
         print(string)
 
 
@@ -63,7 +117,10 @@ class SpecialFormatter(logging.Formatter):
         return logging.Formatter.format(self, record)
 
 
-def setup_logging(show_all=False):
+def setup_logging(show_all=False) -> None:
+    # Setup logging
+    # If the show_all flag is true, set the logging level to INFO.
+    # Otherwise set it to ERROR (default)
     hdlr = logging.StreamHandler(sys.stderr)
     hdlr.setFormatter(SpecialFormatter())
     logging.root.addHandler(hdlr)
@@ -71,17 +128,21 @@ def setup_logging(show_all=False):
         logging.root.setLevel(logging.INFO)
     
 
-def compile_files(filenames: list[str]):
+def compile_files(filenames: list[str]) -> list[str]:
+    # Given the filenames, compile all of them using g++.
+    # This assumes that all files passed in are c++ files. 
+    # If they are not, an error is raised
     new_filenames = []
     for filename in filenames:
-        if filename[-4:] != ".cpp":
+        if filename[-4:] != ".cpp":  # if the last four characters aren't .cpp, raise an error.
             raise Exception("File not a cpp file")
         new_filenames.append(filename[:-4]+".out")
-        subprocess.run(["g++", filename, "-o", f"{filename[:-4]}.out"])
+        subprocess.run(["g++", filename, "-o", f"{filename[:-4]}.out"])  # run the g++ command.
     return new_filenames
 
 
-def before_exit():
+def before_exit() -> None:
+    # close any open files, remove any temporary files.
     stdin_file.close()
     if stdout_file:
         stdout_file.close()
@@ -94,65 +155,76 @@ def before_exit():
 
 
 if __name__ == "__main__":
+    # make sure the program knows we are doing it relative 
+    # from where it is called, not from this dir.
     sys.path.append(os.getcwd())
 
+    # setup argparse
     args = setup_argparse()
 
     # setup logging formatting
     setup_logging(args.show_all)
 
+    # read in the testfile and get all of the file names
     tests = read_testfile(args.testfile)
     filenames = args.files
     
-    if args.is_cpp:
-        # we need to compile the files
+    if args.is_cpp:  # if the files are c++ files, compile them
         filenames = compile_files(filenames)
     
-    all_times = [[] for _ in filenames]
+    all_times = [[] for _ in filenames]  # create an empty array to be added to later.
 
     stdout_file = open("./stdout", "w")
     
+    # Loop through each test
     for test_ind, test in enumerate(tests):
+        # Log the test index
         logging.info(f"Test {test_ind}")
         
+        # Open the file to be used as stdin and write the test data to it.
         with open("./stdin", "w") as f:
             f.write(test)
         stdin_file = open("./stdin", "r")
 
-
+        # Loop through each of the files
         for i in range(len(filenames)):           
             try:
+                # Run the test
                 usage1 = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
                 subprocess.run([filenames[i]], stdin=stdin_file, stdout=stdout_file, timeout=args.timeout)
                 usage2 = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
                 time_taken = usage2-usage1
             except Exception as e:
+                # if an error occurs, log it, close any open files and remove any temporary files (stdin stdout)
                 logging.error(f"ERROR: {e}")
                 logging.error(f"ERROR: {filenames[i]}  Test {test_ind}")
                 before_exit()
                 exit()
 
+            # add the time to the list.
             all_times[i].append(time_taken)
 
+            # log the time taken
             logging.info(f"{filenames[i]} took {time_taken}")
 
+        # close the stdin file
         stdin_file.close()
-        logging.info("---------\n")
 
-    if stdout_file:
-        stdout_file.close()
+        logging.info("---------\n")  # formatting the log
+
+
+    # close the stdout file.
+    stdout_file.close()
 
     # delete the .out files if necessary
     if args.is_cpp:
         for file in filenames:
             subprocess.run(["rm", file])
     
+    # delete the stdin file
     subprocess.run(["rm", "./stdin"])
-    if not args.show_output:
+    if not args.show_output:  # if you don't want to save the output, delete the stdout file.
         subprocess.run(["rm", "./stdout"])
 
     print("sorted best to worst\n")
     display_time_comparison(list(args.files), all_times, args.total)
-
-
-

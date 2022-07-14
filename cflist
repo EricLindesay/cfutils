@@ -1,74 +1,86 @@
 #!/usr/bin/env python3
 import argparse
-import os, re
-
-def in_cwd(file: str) -> bool:
-    r = re.search("\/.*\/", file)  # if it has two /, its not in cwd
-    if r:
-        return False
-    return True
+import os
+import re
 
 
-def problem_solved(file: str) -> bool:
-    read_file = ""
-    with open(file, "r") as f:
+def in_root(dir: str) -> bool:
+    # Determines whether the dir is the root dir. 
+    return not re.search("/.*/", dir)  # if it has two /, its not in root dir (root refers to /codeforces)
+
+
+def problem_solved(dir: str) -> bool:
+    # Determines whether a problem is solved or not.
+    with open(dir+"/README.md", "r") as f:
         read_file = f.read()
-    
-    r = re.search("Solved!", read_file)
-    if r:
-        return True
-    return False
+    return re.search("Solved!", read_file)  # if it contains the string "Solved!" then it is solved.
 
 
-def sort_by_difficulty(arr: list):
-    # create another list with the weights of each of them, zip and sort.
-    weights = []
-    for a in arr:
-        str1 = a[2:6]
-        if str1 == "easy":
-            weights.append(1000)
+def sort_by_difficulty(dirs: list) -> list:
+    # Sorts a list of dirs by difficulty.
+    weights = []  # stores the numerical difficulties of each problem.
+
+    for dir in dirs:
+        difficulty_string = dir[2:6]  # the difficulty is always 4 characters long, so we can just do this.
+        if difficulty_string == "easy":
+            weights.append(1000) 
         else:
-            weights.append(int(str1))
+            weights.append(int(difficulty_string))
 
-    sorted_zip = sorted(zip(weights, arr))  # sort the original array by the weights
-    return [x[1] for x in sorted_zip]
+    sorted_zip = sorted(zip(weights, dirs))  # zip the weights and the dirs, then sort based on the weights
+    return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just get the dirs.
 
 
 def setup_argparse() -> argparse.ArgumentParser:
+    # Setup argparse arguments.
     parser = argparse.ArgumentParser(description='List codeforces challenges')
-    parser.add_argument('-t, --todo', dest="unsolved", action="store_true", help="List incomplete challenges")
-    parser.add_argument('-c, --completed', dest="solved", action="store_true", help="List completed challenges")
+    parser.add_argument('-t, --todo', 
+                        dest="unsolved", 
+                        action="store_true", 
+                        help="List incomplete challenges")
+    parser.add_argument('-c, --completed', 
+                        dest="solved", 
+                        action="store_true", 
+                        help="List completed challenges")
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    # look in ./<difficulty>/<problem_name>/README.md
-    # does the readme contain "Solved!".
-    # if not, add it to the list of unfinished to print.
+    # Look in all subdirectories and get the path to every dir.
+    # Then look in all of those directories for README.md and see if it contains the string "Solved!"
+    # If it does, add it to the list of solved problems.
+    # Otherwise, add it to the list of unsolved problems.
     parser = setup_argparse()
+
+    # this is to ensure that, if they don't specify the optional flags
+    # then both solved and unsolved problems are shown. 
     show_solved = parser.solved or not parser.unsolved
     show_unsolved = parser.unsolved or not parser.solved
 
-    files = [root
+    # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
+    dirs = [root
              for root, dirs, files in os.walk("./")  # look in subfolders
              for name in files
-             if name == "README.md"]  # if its the readme, we want it
+             if name == "README.md"]  # if the folder contains a README.md, we want it.
 
-    # i want them displayed, sorted by difficulty with easy being the lowest.
-
+    # Seperate the list of dirs into solved and unsolved
     solved = []
     unsolved = []
-    for file in files:
-        if not in_cwd(file):  # ignore readmes in the main folder
-            if problem_solved(file+"/README.md"):
-                solved.append(file)
+    for dir in dirs:
+        if not in_root(dir):  # ignore readmes in the main folder
+            if problem_solved(dir):
+                solved.append(dir)
             else:
-                unsolved.append(file)
+                unsolved.append(dir)
 
+
+    # Show the solved problems if appropriate
     if show_solved:
         solved = sort_by_difficulty(solved)
         print("Solved Problems:")
         [print(file) for file in solved]
+
+    # Show unsolved problems if appropriate
     if show_unsolved:
         if show_solved:
             print("")  # newline for formatting
@@ -76,4 +88,3 @@ if __name__ == "__main__":
         unsolved = sort_by_difficulty(unsolved)
         print("Unsolved Problems:")
         [print(file) for file in unsolved]
-
