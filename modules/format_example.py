@@ -1,13 +1,9 @@
-from operator import contains
 import re
-
-from numpy import extract
-from .regex_convert import convert_tags, convert_random_specials, convert_latex
-from modules import regex_convert
+from .regex_convert import *
 
 
 def extract_note(html: str, triple=True) -> str:
-    default = "\n```\n" if triple else ""
+    default = "```\n" if triple else ""
     default += "\n### Note\n"
     r = re.search("<p>.*</p>", html)
     if r:
@@ -40,7 +36,7 @@ def one_liner(one_line: str) -> str:
     lines = string.strip().split("\n")
     for i, line in enumerate(lines):
         if i == 0:  # the first line is the ### Examples one
-            lines[i] = regex_convert.convert_tags(line)
+            lines[i] = convert_tags(line)
             continue
 
         contains_input = re.search(".*Input.*", line)
@@ -60,27 +56,40 @@ def format_example(example:str) -> str:
     lines_to_write = []
     if len(lines) > 1:
         # These should go at the start for formatting
-        lines.insert(0, "### Examples\n")
+        lines_to_write.append("### Examples\n")
+        lines_to_write.append("```\nInput\n")
+        
+        r = re.search("Input</div>.*", lines[0])  # if there are some lines of input, on the same line then add those
+        if r:
+            r = clear_tags(r.group(0)[11:])
+            lines_to_write.append(r+"\n")
 
-        for i, line in enumerate(lines):
+        for i, line in enumerate(lines[1:]):
             if re.search("class=\"output\"", line):  # Format output inside ```
-                lines[i] = "\nOutput"
+                lines_to_write.append("Output\n")
             elif re.search("class=\"input\"", line):  # Format input inside ```
-                lines[i] = "```\nInput\n"   # + any lines of input with \n
+                lines_to_write.append("```\n```\nInput\n")   # + any lines of input with \n
 
                 r = re.search("Input</div>.*", line)  # if there are some lines of input, on the same line then add those
                 if r:
-                    r = regex_convert.clear_tags(r.group(0)[11:])
-                    lines[i] += r
+                    r = clear_tags(r.group(0)[11:])
+                    lines_to_write.append(r)
             elif re.search("class=\"note\"", line):  # Format note
                 # extract and format the note
-                lines[i] = extract_note(line)
-                lines_to_write = lines[:i+1]  # after the notes, we don't want to include any of the final <div>s or newlines
+                #lines_to_write[-1] += "```\n"
+                lines_to_write.append(extract_note(line))
+                break
+            elif re.search("<script>", line):  # Format note
+                lines_to_write[-1] += "```\n"
                 break
             else:
+                # if the line just contains tags, ignore it. Otherwise:
+                temp = clear_tags(line)
+                if re.search("^\s*$", temp):  # if it contains only whitespace, don't add it
+                    continue
                 # its just a plain input line
-                lines[i] = "\n" + lines[i]
-    
+                lines_to_write.append(line+"\n")
+
     if len(lines) == 1:
         lines_to_write = one_liner(lines[0])
 
