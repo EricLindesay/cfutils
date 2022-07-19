@@ -38,7 +38,7 @@ def clear_tags(tags: str) -> str:
     string = re.sub("</?ol>", "", string)
     string = re.sub("</?i>", "", string)
     string = re.sub("<br.+?>", "", string)
-    string = re.sub("<.+?>", "", string)  # if there is a random tag we haven't considered, just replace it with `
+    string = re.sub("<.+?>", "", string)
     return string
 
 def convert_random_specials(string: str) -> str:

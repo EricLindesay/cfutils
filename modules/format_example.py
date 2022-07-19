@@ -2,22 +2,7 @@ import re
 from .regex_convert import *
 
 
-def extract_note(html: str, triple=True) -> str:
-    default = "```\n" if triple else ""
-    default += "\n### Note\n"
-    r = re.search("<p>.*</p>", html)
-    if r:
-        string = r.group(0)
-        string = convert_latex(string)
-        string = convert_random_specials(string)
-        string = convert_tags(string)
-    else:
-        string = html
-
-    return default + string.rstrip()
-
-
-def format_input(input: str) -> str:
+def one_line_format_input(input: str) -> str:
     string = re.sub("<div class=\"title\">", "", input)
     string = re.sub("<div class=\"output\">", "", string)
     string = re.sub("</div>", "", string)
@@ -41,12 +26,8 @@ def one_liner(one_line: str) -> str:
 
         contains_input = re.search(".*Input.*", line)
         if contains_input:
-            lines[i] = format_input(contains_input.group(0))
-        
-        contains_note = re.search(".*Note.*", line)
-        if contains_note:
-            lines[i] = extract_note(contains_note.group(0), False)
-
+            lines[i] = one_line_format_input(contains_input.group(0))
+       
     return "\n".join(lines)
 
 
@@ -74,21 +55,15 @@ def format_example(example:str) -> str:
                 if r:
                     r = clear_tags(r.group(0)[11:])
                     lines_to_write.append(r)
-            elif re.search("class=\"note\"", line):  # Format note
-                # extract and format the note
-                #lines_to_write[-1] += "```\n"
-                lines_to_write.append(extract_note(line))
-                break
-            elif re.search("<script>", line):  # Format note
-                lines_to_write[-1] += "```\n"
-                break
             else:
-                # if the line just contains tags, ignore it. Otherwise:
+                # if the line just contains tags and whitespace, ignore it. Otherwise:
                 temp = clear_tags(line)
                 if re.search("^\s*$", temp):  # if it contains only whitespace, don't add it
                     continue
                 # its just a plain input line
                 lines_to_write.append(line+"\n")
+        
+        lines_to_write.append("```")   # add the final closing code block.
 
     if len(lines) == 1:
         lines_to_write = one_liner(lines[0])

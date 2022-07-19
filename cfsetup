@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from modules.generate_readme import gen_readme
-from modules.get_url_info import get_url_info
-from modules.format_name import format_name
+from modules.get_html_data import get_html_data
+from modules.format_name import format_difficulty, format_name
 import re, os, argparse
 
 def setup_argparse():
@@ -21,15 +21,14 @@ if __name__ == "__main__":
     #url = "https://codeforces.com/problemset/problem/1359/D"
 
     print("Making Folder")
-    url_info = get_url_info(parser.url)
-    name_diff = format_name(url_info["name"])
+    url_info = get_html_data(parser.url)
+    name = format_name(url_info["name"])
+    diff = format_difficulty(url_info["difficulty"])
+    
+    difficulty = diff if int(diff) > 1000 else "easy"
 
-    name = re.search("[\w ]+", name_diff).group(0).strip()
-    diff = int(re.search("\d+", name_diff).group(0))
-    
-    difficulty = str(diff) if diff > 1000 else "easy"
-    
     name = convert_snake_case(name)
+    print(f"./{difficulty}/{name}")
     
     if not os.path.exists(difficulty):
         os.mkdir(difficulty)
@@ -41,4 +40,5 @@ if __name__ == "__main__":
 
     print("Making Readme")
     gen_readme(parser.url, difficulty+"/"+name+"/README.md")
+    print("Finished")
 
