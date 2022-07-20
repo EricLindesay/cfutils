@@ -26,7 +26,7 @@ def gen_readme(url:str, filename="README.md"):
         f.write(url_info["examples"])
         f.write(url_info["note"])
 
-        f.write("\n\n\n## Solution\n\n")
+        f.write("\n\n\n-----\n## Solution\n\n")
 
 
 
