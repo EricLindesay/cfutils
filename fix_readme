@@ -4,7 +4,9 @@ import os
 
 
 def setup_argparse() -> argparse.ArgumentParser:
-    # Setup argparse arguments.
+    '''
+    Setup argparse arguments.
+    '''
     parser = argparse.ArgumentParser(description='Fix codeforces README files automatically')
     parser.add_argument('-d, --dir', 
                         dest="path", 
@@ -20,6 +22,10 @@ def setup_argparse() -> argparse.ArgumentParser:
 
 
 def revert_backup() -> None:
+    '''
+    When a README is fixed, the original README is saved as a backup.
+    This reverts the backup.
+    '''
     # if the backup file doesn't exist then raise an error.
     if not os.path.exists(filepath+".back"):
         raise FileNotFoundError("Backup file not found")
@@ -53,6 +59,7 @@ if __name__ == "__main__":
         # the backup file already exists so give a warning
         raise FileExistsError("Backup file already exists. Please delete it before continuing")
 
+    # Read the README as it currently is and create a backup.
     lines = []
     with open(filepath, "r") as f:  # read the readme as it currently is
         lines = f.readlines()

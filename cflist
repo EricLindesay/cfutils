@@ -5,19 +5,28 @@ import re
 
 
 def in_root(dir: str) -> bool:
-    # Determines whether the dir is the root dir. 
+    '''
+    Determines whether the dir is the root or not.
+    The READMEs this lists should never show the readme in the current folder. 
+    '''
     return not re.search("/.*/", dir)  # if it has two /, its not in root dir (root refers to /codeforces)
 
 
 def problem_solved(dir: str) -> bool:
-    # Determines whether a problem is solved or not.
+    '''
+    Determines whether a problem is solved or not.
+    
+    A problem is solved if it contains the string "Solved!".
+    '''
     with open(dir+"/README.md", "r") as f:
         read_file = f.read()
-    return re.search("Solved!", read_file)  # if it contains the string "Solved!" then it is solved.
+    return re.search("Solved!", read_file)
 
 
 def sort_by_difficulty(dirs: list) -> list:
-    # Sorts a list of dirs by difficulty.
+    '''
+    Sorts a list of dirs by the difficulty of the problems it contains.
+    '''
     weights = []  # stores the numerical difficulties of each problem.
 
     for dir in dirs:
@@ -28,11 +37,13 @@ def sort_by_difficulty(dirs: list) -> list:
             weights.append(int(difficulty_string))
 
     sorted_zip = sorted(zip(weights, dirs))  # zip the weights and the dirs, then sort based on the weights
-    return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just get the dirs.
+    return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just return the dirs.
 
 
 def setup_argparse() -> argparse.ArgumentParser:
-    # Setup argparse arguments.
+    '''
+    Setup argparse arguments.
+    '''
     parser = argparse.ArgumentParser(description='List codeforces challenges')
     parser.add_argument('-t, --todo', 
                         dest="unsolved", 
@@ -46,10 +57,13 @@ def setup_argparse() -> argparse.ArgumentParser:
 
 
 if __name__ == "__main__":
-    # Look in all subdirectories and get the path to every dir.
-    # Then look in all of those directories for README.md and see if it contains the string "Solved!"
-    # If it does, add it to the list of solved problems.
-    # Otherwise, add it to the list of unsolved problems.
+    '''
+    Look in all subdirectories and get the path to every dir.
+    Then look in all of those directories for README.md and see if it contains the string "Solved!"
+    If it does, add it to the list of solved problems.
+    Otherwise, add it to the list of unsolved problems.
+    Print both of these lists.
+    '''
     parser = setup_argparse()
 
     # this is to ensure that, if they don't specify the optional flags
@@ -72,7 +86,6 @@ if __name__ == "__main__":
                 solved.append(dir)
             else:
                 unsolved.append(dir)
-
 
     # Show the solved problems if appropriate
     if show_solved:

@@ -8,7 +8,9 @@ import logging
 
 
 def setup_argparse() -> argparse.ArgumentParser:
-    # Setup argparse arguments.
+    '''
+    Setup argparse arguments.
+    '''
     parser = argparse.ArgumentParser(description='Run test scripts')
     parser.add_argument('testfile', 
                         help="the file containing the tests to run")
@@ -39,8 +41,10 @@ def setup_argparse() -> argparse.ArgumentParser:
 
 
 def read_testfile(filename: str) -> list[str]:
-    # Read the test file, splitting it up based on each test, seperated by -----.
-    # Return the list of tests arguments.
+    '''
+    Read the test file, splitting it up based on each test, seperated by -----.
+    Return the list of tests arguments.
+    '''
     with open(filename, 'r') as f:
         lines = f.read()
 
@@ -50,19 +54,23 @@ def read_testfile(filename: str) -> list[str]:
 
 
 def sort_by_average(filenames: list[str], times: list[float]) -> list[(str,float)]:
-    # sort the filenames by average time taken. 
-    # Returns the sorted, zipped list.
-    # The zipped list is zipped with filename and with the array of all times for all tests
+    '''
+    Sort the filenames by average time taken. 
+    Returns the sorted, zipped list.
+    The zipped list is zipped with filename and with the array of all times for all tests
+    '''
     zip_times = list(zip(list(filenames), times))
     sorted_times = sorted(zip_times, key=lambda x: sum(x[1])/len(x[1]))
     return sorted_times
 
 
 def print_header(filenames: list[str], show_total: bool) -> int:
-    # Print the header
-    # Something like "filename | average time | total time | % better"
-    # Make sure that the column titles are formatted correctly.
-    # Return the length of the first column.
+    '''
+    Print the header
+    Something like "filename | average time | total time | % better"
+    Make sure that the column titles are formatted correctly.
+    Return the length of the first column.
+    '''
     max_length = max(len(filename) for filename in filenames)
     max_length = max(max_length, 20) + 2  # get the max length of the "filename" column
 
@@ -78,6 +86,11 @@ def print_header(filenames: list[str], show_total: bool) -> int:
 
 
 def display_time_comparison(filenames: list[str], times: list[float], show_total: bool) -> None:
+    '''
+    Print the times in the format required.
+    Printed in the format "filename | average time | total time | % better"
+    With total time being optional, passed through as an argument to the function.
+    '''
     # sort the times based on average time.
     sorted_times = sort_by_average(filenames, times)
     
@@ -118,9 +131,11 @@ class SpecialFormatter(logging.Formatter):
 
 
 def setup_logging(show_all=False) -> None:
-    # Setup logging
-    # If the show_all flag is true, set the logging level to INFO.
-    # Otherwise set it to ERROR (default)
+    '''
+    Setup logging
+    If the show_all flag is true, set the logging level to INFO.
+    Otherwise set it to ERROR (default)
+    '''
     hdlr = logging.StreamHandler(sys.stderr)
     hdlr.setFormatter(SpecialFormatter())
     logging.root.addHandler(hdlr)
@@ -129,9 +144,12 @@ def setup_logging(show_all=False) -> None:
     
 
 def compile_files(filenames: list[str]) -> list[str]:
-    # Given the filenames, compile all of them using g++.
-    # This assumes that all files passed in are c++ files. 
-    # If they are not, an error is raised
+    '''
+    Given the filenames, compile all of them using g++.
+    This assumes that all files passed in are c++ files. 
+    If they are not, an error is raised
+    This is only called if the -c flag is used in the command.
+    '''
     new_filenames = []
     for filename in filenames:
         if filename[-4:] != ".cpp":  # if the last four characters aren't .cpp, raise an error.
@@ -142,7 +160,9 @@ def compile_files(filenames: list[str]) -> list[str]:
 
 
 def before_exit() -> None:
-    # close any open files, remove any temporary files.
+    '''
+    Close any open files, remove any temporary files.
+    '''
     stdin_file.close()
     if stdout_file:
         stdout_file.close()

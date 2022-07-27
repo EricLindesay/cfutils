@@ -3,11 +3,14 @@ from .format_problem import format_problem_statement
 from .format_example import format_example
 from .format_note import format_note
 from .format_name import format_name, format_difficulty
-import re
-
 
 
 def gen_readme(url:str, filename="README.md"):
+    '''
+    This takes in a url and creates the readme.  
+    At first it needs to get all of the data and then it is just formatting everything 
+    and writing it to the file.  
+    '''
     url_info = get_html_data(url)
     url_info["name"] = format_name(url_info["name"])
     url_info["difficulty"] = format_difficulty(url_info["difficulty"])

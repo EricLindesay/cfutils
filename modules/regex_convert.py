@@ -1,19 +1,26 @@
 import re
 
 def convert_latex(latex: str) -> str:
-    string = re.sub("\\\leq", "<=", latex)
-    string = re.sub("\\\le", "<=", string)
-    string = re.sub("\\\lt", "<", string)
-    string = re.sub("\\\geq", ">=", string)
-    string = re.sub("\\\ge", ">=", string)
-    string = re.sub("\\\gt", ">", string)
-    string = re.sub("\\\ldots", "...", string)
-    string = re.sub("\\\dots", "...", string)
-    string = re.sub("\\\cdots?", "*", string)
-    string = re.sub("\\\times", "*", string)
+    '''
+    Convert common latex expressions into expressions which
+    can be interpreted by markdown.  
+    '''
+    string = re.sub(r"\\leq", "<=", latex)
+    string = re.sub(r"\\le", "<=", string)
+    string = re.sub(r"\\lt", "<", string)
+    string = re.sub(r"\\geq", ">=", string)
+    string = re.sub(r"\\ge", ">=", string)
+    string = re.sub(r"\\gt", ">", string)
+    string = re.sub(r"\\ldots", "...", string)
+    string = re.sub(r"\\dots", "...", string)
+    string = re.sub(r"\\cdots?", "*", string)
+    string = re.sub(r"\\times", "*", string)
     return string
 
 def convert_tags(tags: str) -> str:
+    '''
+    Convert common html tags into appropriate text which makes the file look nicer.
+    '''
     string = re.sub("<div.+?>", "", tags)
     string = re.sub("<p>", "", string)
     string = re.sub("</p>", "  \n\n", string)
@@ -28,6 +35,9 @@ def convert_tags(tags: str) -> str:
     return string
 
 def clear_tags(tags: str) -> str:
+    '''
+    Replace all html tags with an empty string.
+    '''
     string = re.sub("<div.+?>", "", tags)
     string = re.sub("<p>", "", string)
     string = re.sub("</p>", "", string)
@@ -42,6 +52,9 @@ def clear_tags(tags: str) -> str:
     return string
 
 def convert_random_specials(string: str) -> str:
+    '''
+    Convert random special characters to the string representation.  
+    '''
     string = re.sub("\$\$\$", "`", string)
     string = re.sub("\\\,", ",", string)
     string = re.sub("&quot;", "\"", string)

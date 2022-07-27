@@ -5,31 +5,40 @@ from modules.get_html_data import get_html_data
 from modules.format_name import format_difficulty, format_name
 import re, os, argparse
 
-def setup_argparse():
+
+def setup_argparse() -> argparse.ArgumentParser:
+    '''
+    Setup argparse arguments.
+    '''
     parser = argparse.ArgumentParser(description='Automatically create README files for codeforce links')
     parser.add_argument('url', help="The codeforces url")
     parser.add_argument('--force', dest="force", action="store_true", help="Forcibly overwrite the current readme.")
     return parser.parse_args()
 
+
 def convert_snake_case(string: str) -> str:
+    '''
+    Converts a string into snake case.
+    '''
     string = string.lower()
     string = re.sub(" ", "_", string)
     return string
 
+
 if __name__ == "__main__":
     parser = setup_argparse()
-    #url = "https://codeforces.com/problemset/problem/1359/D"
 
-    print("Making Folder")
+    # Get the name and difficulty of the problem.
     url_info = get_html_data(parser.url)
     name = format_name(url_info["name"])
     diff = format_difficulty(url_info["difficulty"])
     
     difficulty = diff if int(diff) > 1000 else "easy"
-
     name = convert_snake_case(name)
-    print(f"./{difficulty}/{name}")
     
+    # Make the folder for the problem.
+    print("Making Folder")
+    print(f"./{difficulty}/{name}")
     if not os.path.exists(difficulty):
         os.mkdir(difficulty)
     if parser.force:
@@ -38,7 +47,9 @@ if __name__ == "__main__":
     else:
         os.mkdir(difficulty+"/"+name)
 
+    # Make the readme in the created folder.
     print("Making Readme")
     gen_readme(parser.url, difficulty+"/"+name+"/README.md")
+    
     print("Finished")
 

@@ -7,7 +7,9 @@ import re
 
 
 def setup_argparse() -> argparse.ArgumentParser:
-    # Setup argparse arguments.
+    '''
+    Setup argparse arguments.
+    '''
     parser = argparse.ArgumentParser(description='Automatically create README files for codeforce links')
     parser.add_argument('url', 
                         help="The codeforces url")
@@ -25,6 +27,10 @@ def setup_argparse() -> argparse.ArgumentParser:
 
 
 def mkreadme(url: str, filepath: str, force=False) -> None:
+    '''
+    Make the readme.
+    This just calls gen_readme.
+    '''
     # if there is already a readme, if we don't want to overwrite it then fail. Otherwise, ignore it. 
     if os.path.exists(filepath) and not force:
         raise FileExistsError(f"File {filepath} already exists. Run with --force to overwrite")
