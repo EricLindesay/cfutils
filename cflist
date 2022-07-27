@@ -3,6 +3,8 @@ import argparse
 import os
 import re
 
+from requests import get
+
 
 def in_root(dir: str) -> bool:
     '''
@@ -23,7 +25,7 @@ def problem_solved(dir: str) -> bool:
     return re.search("Solved!", read_file)
 
 
-def sort_by_difficulty(dirs: list) -> list:
+def sort_by_difficulty(dirs: list, tags=[]) -> list:
     '''
     Sorts a list of dirs by the difficulty of the problems it contains.
     '''
@@ -36,11 +38,19 @@ def sort_by_difficulty(dirs: list) -> list:
         else:
             weights.append(int(difficulty_string))
 
-    sorted_zip = sorted(zip(weights, dirs))  # zip the weights and the dirs, then sort based on the weights
-    return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just return the dirs.
+    if tags:
+        sorted_zip = sorted(zip(weights, dirs))  # zip the weights and the dirs, then sort based on the weights
+        sorted_tags = sorted(zip(weights, tags))  # zip the weights and the tags, then sort based on the weights
+        return [x[1] for x in sorted_zip], [x[1] for x in sorted_tags]  # we don't want to have the weights as well, so just return the dirs.
+    else:
+        sorted_zip = sorted(zip(weights, dirs))  # zip the weights and the dirs, then sort based on the weights
+        return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just return the dirs.
 
 
 def in_tag_list(dir: str, tags: list[str]) -> bool:
+    '''
+    See if the tags that you want to search by are in this problem.  
+    '''
     name_conversions = {
         "bsearch": "binary search",
         "btree": "binary trees",
@@ -49,13 +59,8 @@ def in_tag_list(dir: str, tags: list[str]) -> bool:
     if not tags:
         return True
 
-    tag_line = ""
-    with open(dir+"/README.md", "r") as f:
-        for line in f.readlines():
-            if line[:9] == "**Tags**:":
-                tag_line = line[9:]
-
-    tag_line = [tag.lower().strip() for tag in tag_line.split(", ")]
+    tag_line = get_tags_in_file(dir+"/README.md")   
+    tag_line = [tag.lower() for tag in tag_line]
     for tag in tags:
         tag = tag.replace("_", " ")
         if tag in name_conversions.keys():
@@ -65,6 +70,21 @@ def in_tag_list(dir: str, tags: list[str]) -> bool:
         if not tag in tag_line:
             return False
     return True
+
+
+def get_tags_in_file(file: str) -> list[str]:
+    '''
+    Gets a list of tags in a given file. 
+    '''
+    tag_line = ""
+    with open(file, "r") as f:
+        for line in f.readlines():
+            if line[:9] == "**Tags**:":
+                tag_line = line[9:]
+                break
+
+    tag_line = [tag.strip() for tag in tag_line.split(", ")]
+    return tag_line
 
 
 def setup_argparse() -> argparse.ArgumentParser:
@@ -80,6 +100,10 @@ def setup_argparse() -> argparse.ArgumentParser:
                         dest="solved", 
                         action="store_true", 
                         help="List completed challenges")
+    parser.add_argument('--show-tags',
+                        dest="show_tags",
+                        action="store_true",
+                        help="Whether to show the tags for each problem or not")
     parser.add_argument('--tags',
                         dest="tags",
                         nargs="*",
@@ -101,7 +125,8 @@ if __name__ == "__main__":
     # then both solved and unsolved problems are shown. 
     show_solved = parser.solved or not parser.unsolved
     show_unsolved = parser.unsolved or not parser.solved
-    tags = parser.tags or None
+    tags = parser.tags
+    show_tags = parser.show_tags
 
     # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
     dirs = [root
@@ -112,25 +137,36 @@ if __name__ == "__main__":
     # Seperate the list of dirs into solved and unsolved
     solved = []
     unsolved = []
+    solved_tags = []
+    unsolved_tags = []
     for dir in dirs:
         if not in_root(dir):  # ignore readmes in the main folder
             if in_tag_list(dir, tags):
+                file_tags = get_tags_in_file(dir+"/README.md")
                 if problem_solved(dir):
                     solved.append(dir)
+                    solved_tags.append(file_tags)
                 else:
                     unsolved.append(dir)
+                    unsolved_tags.append(file_tags)
 
     # Show the solved problems if appropriate
     if show_solved:
-        solved = sort_by_difficulty(solved)
+        solved, solved_tags = sort_by_difficulty(solved, solved_tags)
         print(f"{len(solved)} Solved Problems:")
-        [print(file) for file in solved]
+        if show_tags:
+            [print(f"{file}: {tags}") for file, tags in zip(solved, solved_tags)]
+        else:
+            [print(file) for file, tags in zip(solved, solved_tags)]
 
     # Show unsolved problems if appropriate
     if show_unsolved:
         if show_solved:
             print("")  # newline for formatting
 
-        unsolved = sort_by_difficulty(unsolved)
+        unsolved, unsolved_tags = sort_by_difficulty(unsolved, unsolved_tags)
         print(f"{len(unsolved)} Unsolved Problems:")
-        [print(file) for file in unsolved]
+        if show_tags:
+            [print(f"{file}: {tags}") for file, tags in zip(unsolved, unsolved_tags)]
+        else:
+            [print(file) for file, tags in zip(unsolved, unsolved_tags)]

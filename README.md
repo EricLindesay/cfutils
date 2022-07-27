@@ -67,6 +67,7 @@ cflist
 - -h, --help = help
 - -t, --todo = List incomplete challenges  
 - -c, --completed = List completed challenges
+- --show-tags = Whether to show the tags for each problem or not
 - --tags = Show only problems containing the specified tags
 
 ## cfsetup
