@@ -2,7 +2,7 @@ from .get_html_data import get_html_data
 from .format_problem import format_problem_statement
 from .format_example import format_example
 from .format_note import format_note
-from .format_name import format_name, format_difficulty
+from .format_common import format_name, format_difficulty, format_tags
 
 
 def gen_readme(url:str, filename="README.md"):
@@ -17,9 +17,11 @@ def gen_readme(url:str, filename="README.md"):
     url_info["problem"] = format_problem_statement(url_info["problem"])
     url_info["examples"] = format_example(url_info["examples"])
     url_info["note"] = format_note(url_info["note"])
-   
+    url_info["tags"] = format_tags(url_info["tags"])
+
     with open(filename, "w") as f:
         f.write(f"# {url_info['name']} - {url_info['difficulty']}\n")
+        f.write(f"**Tags**: {url_info['tags']}  \n")
         f.write("- [Problem](#problem)\n")
         f.write("- [Solution](#solution)\n\n")
         

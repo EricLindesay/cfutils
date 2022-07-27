@@ -78,6 +78,7 @@ def get_html_data(url) -> dict:
     '''
 
     url_info = {
+        "tags": "",
         "difficulty": "",
         "name": "",
         "problem": "",
@@ -89,10 +90,11 @@ def get_html_data(url) -> dict:
     fp = urllib.request.urlopen(url)
 
     START = 0  # while we are still looping through garbage data
-    DIFFICULTY = 1  # while we are looking for the difficulty
-    PROBLEM = 2  # while we are looking for the problem statement
-    EXAMPLE = 3  # while we are looking for the example class
-    NOTE = 4  # while we are looking for the note or for multiline input.
+    TAG = 1
+    DIFFICULTY = 2  # while we are looking for the difficulty
+    PROBLEM = 3  # while we are looking for the problem statement
+    EXAMPLE = 4  # while we are looking for the example class
+    NOTE = 5  # while we are looking for the note or for multiline input.
 
     state = START
     multiline_input = False
@@ -101,7 +103,7 @@ def get_html_data(url) -> dict:
     for line in fp.readlines():
         line = line.decode("utf8")
 
-        # Find the difficulty of the problem
+        # Find the tags or difficulty of the problem
         if state == START:
             difficulty = re.search("title=\"Difficulty\"", line)
             if difficulty:
@@ -109,6 +111,17 @@ def get_html_data(url) -> dict:
                 # So set the state to DIFFICULTY
                 state = DIFFICULTY
                 continue
+            
+            tag_box = re.search("class=\"tag-box\"", line)
+            if tag_box:
+                # The tag always follows the line with tag-box in it.
+                state = TAG
+                continue
+
+        if state == TAG:
+            url_info["tags"] += line
+            state = START
+            continue
 
         if state == DIFFICULTY:  # write the difficulty
             url_info["difficulty"] = line
@@ -175,4 +188,4 @@ def get_html_data(url) -> dict:
 if __name__ == "__main__":
     url = "https://codeforces.com/problemset/problem/110/A"
     dict = get_html_data(url)
-    print(dict["name"])
+    print(dict["tags"])

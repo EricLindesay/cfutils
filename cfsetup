@@ -2,7 +2,7 @@
 
 from modules.generate_readme import gen_readme
 from modules.get_html_data import get_html_data
-from modules.format_name import format_difficulty, format_name
+from modules.format_common import format_difficulty, format_name
 import re, os, argparse
 
 

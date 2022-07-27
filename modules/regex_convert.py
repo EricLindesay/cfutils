@@ -53,7 +53,7 @@ def clear_tags(tags: str) -> str:
 
 def convert_random_specials(string: str) -> str:
     '''
-    Convert random special characters to the string representation.  
+    Convert random special characters to the string representation.
     '''
     string = re.sub("\$\$\$", "`", string)
     string = re.sub("\\\,", ",", string)
