@@ -57,6 +57,7 @@ The parameters can be used to show only one of those categories.
 A challenge is solved if it contains the string "Solved!".  
 This string should by convention be at the end of the file, but may not be.  
 Prints the challenges to stdout.  
+You can also sort by tags and only show problems containing all of those tags.  
 
 ```
 cflist
@@ -66,7 +67,7 @@ cflist
 - -h, --help = help
 - -t, --todo = List incomplete challenges  
 - -c, --completed = List completed challenges
-
+- --tags = Show only problems containing the specified tags
 
 ## cfsetup
 [cfsetup](cfsetup)  

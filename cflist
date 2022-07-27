@@ -40,6 +40,33 @@ def sort_by_difficulty(dirs: list) -> list:
     return [x[1] for x in sorted_zip]  # we don't want to have the weights as well, so just return the dirs.
 
 
+def in_tag_list(dir: str, tags: list[str]) -> bool:
+    name_conversions = {
+        "bsearch": "binary search",
+        "btree": "binary trees",
+        "dp": "dynamic programming",
+    }
+    if not tags:
+        return True
+
+    tag_line = ""
+    with open(dir+"/README.md", "r") as f:
+        for line in f.readlines():
+            if line[:9] == "**Tags**:":
+                tag_line = line[9:]
+
+    tag_line = [tag.lower().strip() for tag in tag_line.split(", ")]
+    for tag in tags:
+        tag = tag.replace("_", " ")
+        if tag in name_conversions.keys():
+            if name_conversions[tag] in tag_line:
+                continue
+
+        if not tag in tag_line:
+            return False
+    return True
+
+
 def setup_argparse() -> argparse.ArgumentParser:
     '''
     Setup argparse arguments.
@@ -53,6 +80,10 @@ def setup_argparse() -> argparse.ArgumentParser:
                         dest="solved", 
                         action="store_true", 
                         help="List completed challenges")
+    parser.add_argument('--tags',
+                        dest="tags",
+                        nargs="*",
+                        help="Show only problems containing the specified tags")
     return parser.parse_args()
 
 
@@ -70,6 +101,7 @@ if __name__ == "__main__":
     # then both solved and unsolved problems are shown. 
     show_solved = parser.solved or not parser.unsolved
     show_unsolved = parser.unsolved or not parser.solved
+    tags = parser.tags or None
 
     # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
     dirs = [root
@@ -82,10 +114,11 @@ if __name__ == "__main__":
     unsolved = []
     for dir in dirs:
         if not in_root(dir):  # ignore readmes in the main folder
-            if problem_solved(dir):
-                solved.append(dir)
-            else:
-                unsolved.append(dir)
+            if in_tag_list(dir, tags):
+                if problem_solved(dir):
+                    solved.append(dir)
+                else:
+                    unsolved.append(dir)
 
     # Show the solved problems if appropriate
     if show_solved:
