@@ -2,9 +2,6 @@
 import argparse
 import os
 import re
-from black import diff
-
-from requests import get
 
 
 def in_root(dir: str) -> bool:
