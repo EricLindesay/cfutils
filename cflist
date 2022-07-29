@@ -2,6 +2,7 @@
 import argparse
 import os
 import re
+from black import diff
 
 from requests import get
 
@@ -29,6 +30,9 @@ def sort_by_difficulty(dirs: list, tags=[]) -> list:
     '''
     Sorts a list of dirs by the difficulty of the problems it contains.
     '''
+    if not dirs:
+        return [[],[]]
+
     weights = []  # stores the numerical difficulties of each problem.
 
     for dir in dirs:
@@ -87,6 +91,13 @@ def get_tags_in_file(file: str) -> list[str]:
     return tag_line
 
 
+def valid_difficulty(dir: str, difficulty: str) -> bool:
+    if not difficulty:
+        return True
+    dir_difficulty = dir[2:6]
+    return dir_difficulty == difficulty
+
+
 def setup_argparse() -> argparse.ArgumentParser:
     '''
     Setup argparse arguments.
@@ -108,6 +119,10 @@ def setup_argparse() -> argparse.ArgumentParser:
                         dest="tags",
                         nargs="*",
                         help="Show only problems containing the specified tags")
+    parser.add_argument('--diff',
+                        dest="difficulty",
+                        nargs=1,
+                        help="Show only problems containing the specified difficulty")
     return parser.parse_args()
 
 
@@ -127,6 +142,10 @@ if __name__ == "__main__":
     show_unsolved = parser.unsolved or not parser.solved
     tags = parser.tags
     show_tags = parser.show_tags
+    if parser.difficulty:
+        difficulty = parser.difficulty[0]
+    else:
+        difficulty = None
 
     # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
     dirs = [root
@@ -141,7 +160,7 @@ if __name__ == "__main__":
     unsolved_tags = []
     for dir in dirs:
         if not in_root(dir):  # ignore readmes in the main folder
-            if in_tag_list(dir, tags):
+            if valid_difficulty(dir, difficulty) and in_tag_list(dir, tags):
                 file_tags = get_tags_in_file(dir+"/README.md")
                 if problem_solved(dir):
                     solved.append(dir)

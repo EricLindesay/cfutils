@@ -69,6 +69,7 @@ cflist
 - -c, --completed = List completed challenges
 - --show-tags = Whether to show the tags for each problem or not
 - --tags = Show only problems containing the specified tags
+- --diff, --difficulty = Show only problems containing the specified difficulty
 
 ## cfsetup
 [cfsetup](cfsetup)  
