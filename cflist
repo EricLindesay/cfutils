@@ -52,11 +52,6 @@ def in_tag_list(dir: str, tags: list[str]) -> bool:
     '''
     See if the tags that you want to search by are in this problem.  
     '''
-    name_conversions = {
-        "bsearch": "binary search",
-        "btree": "binary trees",
-        "dp": "dynamic programming",
-    }
     if not tags:
         return True
 
@@ -64,8 +59,8 @@ def in_tag_list(dir: str, tags: list[str]) -> bool:
     tag_line = [tag.lower() for tag in tag_line]
     for tag in tags:
         tag = tag.replace("_", " ")
-        if tag in name_conversions.keys():
-            if name_conversions[tag] in tag_line:
+        if tag in TAG_CONVERSIONS.keys():
+            if TAG_CONVERSIONS[tag] in tag_line:
                 continue
 
         if not tag in tag_line:
@@ -88,11 +83,58 @@ def get_tags_in_file(file: str) -> list[str]:
     return tag_line
 
 
+def hide_tag(dir: str, list_of_hides: list[str]) -> bool:
+    '''
+    See if the tags that you want to hide are in this problem.  
+    '''
+    if not list_of_hides:
+        return False
+
+    tag_line = get_tags_in_file(dir+"/README.md")   
+    tag_line = [tag.lower() for tag in tag_line]
+    for hide_tag in list_of_hides:
+        hide_tag = hide_tag.replace("_", " ")
+        if hide_tag in TAG_CONVERSIONS.keys():
+            if TAG_CONVERSIONS[hide_tag] in tag_line:
+                return True
+        if hide_tag in tag_line:
+            return True
+
+    return False
+
+
 def valid_difficulty(dir: str, difficulty: str) -> bool:
+    '''
+    Returns whether the file should be shown based on difficulty.
+    '''
     if not difficulty:
         return True
     dir_difficulty = dir[2:6]
-    return dir_difficulty == difficulty
+    return dir_difficulty in difficulty
+
+
+def hide_difficulty(dir: str, hide: list[str]) -> bool:
+    '''
+    Whether this difficulty should be hidden or not.
+    '''
+    dir_difficulty = dir[2:6]
+    return dir_difficulty in hide
+        
+
+def parse_tag_diff_list(list_of_tags_diff: list[str]):
+    '''
+    Receive a list containing tags and difficulties and seperate them.
+    '''
+    if not list_of_tags_diff:
+        return [], []
+    hide_tags = []
+    hide_difficulties = []
+    for item in list_of_tags_diff:
+        if item == "easy" or re.match("\d+", item):
+            hide_difficulties.append(item)
+        else:
+            hide_tags.append(item)
+    return list(set(hide_tags)), list(set(hide_difficulties))
 
 
 def setup_argparse() -> argparse.ArgumentParser:
@@ -112,16 +154,24 @@ def setup_argparse() -> argparse.ArgumentParser:
                         dest="show_tags",
                         action="store_true",
                         help="Whether to show the tags for each problem or not")
-    parser.add_argument('--tags',
-                        dest="tags",
-                        nargs="*",
-                        help="Show only problems containing the specified tags")
-    parser.add_argument('--diff',
-                        dest="difficulty",
-                        nargs=1,
-                        help="Show only problems containing the specified difficulty")
+    parser.add_argument('--show',
+                        dest="show",
+                        nargs="+",
+                        help="A list of difficulties/tags to show")
+    parser.add_argument('--hide',
+                        dest="hide",
+                        nargs="+",
+                        help="A list of difficulties/tags to hide. Defaults to hide easy difficulty")
     return parser.parse_args()
 
+
+
+TAG_CONVERSIONS = {
+    "bsearch": "binary search",
+    "btree": "binary trees",
+    "dp": "dynamic programming",
+    "math": "maths",
+}
 
 if __name__ == "__main__":
     '''
@@ -137,12 +187,13 @@ if __name__ == "__main__":
     # then both solved and unsolved problems are shown. 
     show_solved = parser.solved or not parser.unsolved
     show_unsolved = parser.unsolved or not parser.solved
-    tags = parser.tags
-    show_tags = parser.show_tags
-    if parser.difficulty:
-        difficulty = parser.difficulty[0]
-    else:
-        difficulty = None
+    show_tags_list = parser.show_tags
+
+    show_tags, show_difficulties = parse_tag_diff_list(parser.show)
+    hide_tags, hide_difficulties = parse_tag_diff_list(parser.hide)
+    if "easy" not in hide_difficulties and "easy" not in show_difficulties:
+        hide_difficulties.append("easy")
+    print(f"Hiding: {', '.join(hide_difficulties+hide_tags)}")
 
     # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
     dirs = [root
@@ -157,20 +208,21 @@ if __name__ == "__main__":
     unsolved_tags = []
     for dir in dirs:
         if not in_root(dir):  # ignore readmes in the main folder
-            if valid_difficulty(dir, difficulty) and in_tag_list(dir, tags):
-                file_tags = get_tags_in_file(dir+"/README.md")
-                if problem_solved(dir):
-                    solved.append(dir)
-                    solved_tags.append(file_tags)
-                else:
-                    unsolved.append(dir)
-                    unsolved_tags.append(file_tags)
+            if valid_difficulty(dir, show_difficulties) and not hide_difficulty(dir, hide_difficulties): 
+                if in_tag_list(dir, show_tags) and not hide_tag(dir, hide_tags):
+                    file_tags = get_tags_in_file(dir+"/README.md")
+                    if problem_solved(dir):
+                        solved.append(dir)
+                        solved_tags.append(file_tags)
+                    else:
+                        unsolved.append(dir)
+                        unsolved_tags.append(file_tags)
 
     # Show the solved problems if appropriate
     if show_solved:
         solved, solved_tags = sort_by_difficulty(solved, solved_tags)
         print(f"{len(solved)} Solved Problems:")
-        if show_tags:
+        if show_tags_list:
             [print(f"{file}: {tags}") for file, tags in zip(solved, solved_tags)]
         else:
             [print(file) for file, tags in zip(solved, solved_tags)]
@@ -182,7 +234,7 @@ if __name__ == "__main__":
 
         unsolved, unsolved_tags = sort_by_difficulty(unsolved, unsolved_tags)
         print(f"{len(unsolved)} Unsolved Problems:")
-        if show_tags:
+        if show_tags_list:
             [print(f"{file}: {tags}") for file, tags in zip(unsolved, unsolved_tags)]
         else:
             [print(file) for file, tags in zip(unsolved, unsolved_tags)]

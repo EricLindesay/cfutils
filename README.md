@@ -59,6 +59,8 @@ This string should by convention be at the end of the file, but may not be.
 Prints the challenges to stdout.  
 You can also sort by tags and only show problems containing all of those tags.  
 
+NOTE: Have an ignore parameter which can pass tags OR difficulty
+
 ```
 cflist
 ```
@@ -68,8 +70,9 @@ cflist
 - -t, --todo = List incomplete challenges  
 - -c, --completed = List completed challenges
 - --show-tags = Whether to show the tags for each problem or not
-- --tags = Show only problems containing the specified tags
-- --diff = Show only problems containing the specified difficulty
+- --show = A list of difficulties/tags to show
+- --hide = A list of difficulties/tags to hide. Defaults to hide easy difficulty
+
 
 ## cfsetup
 [cfsetup](cfsetup)  
