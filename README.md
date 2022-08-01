@@ -57,9 +57,7 @@ The parameters can be used to show only one of those categories.
 A challenge is solved if it contains the string "Solved!".  
 This string should by convention be at the end of the file, but may not be.  
 Prints the challenges to stdout.  
-You can also sort by tags and only show problems containing all of those tags.  
-
-NOTE: Have an ignore parameter which can pass tags OR difficulty
+You can also sort by tags/difficulty and only show problems containing all of those tags/difficulty.  
 
 ```
 cflist
@@ -70,6 +68,7 @@ cflist
 - -t, --todo = List incomplete challenges  
 - -c, --completed = List completed challenges
 - --show-tags = Whether to show the tags for each problem or not
+- --show-all = Overwrites anything in the ignore lists
 - --show = A list of difficulties/tags to show
 - --hide = A list of difficulties/tags to hide. Defaults to hide easy difficulty
 

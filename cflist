@@ -162,6 +162,10 @@ def setup_argparse() -> argparse.ArgumentParser:
                         dest="hide",
                         nargs="+",
                         help="A list of difficulties/tags to hide. Defaults to hide easy difficulty")
+    parser.add_argument('--show-all',
+                        dest="show_all",
+                        action="store_true",
+                        help="Overwrites anything in the ignore lists")
     return parser.parse_args()
 
 
@@ -193,6 +197,11 @@ if __name__ == "__main__":
     hide_tags, hide_difficulties = parse_tag_diff_list(parser.hide)
     if "easy" not in hide_difficulties and "easy" not in show_difficulties:
         hide_difficulties.append("easy")
+
+    if parser.show_all:
+        hide_tags = []
+        hide_difficulties = []
+
     print(f"Hiding: {', '.join(hide_difficulties+hide_tags)}")
 
     # Get a list of all subdirectories (and the subdirectories inside those subdirectories etc)
