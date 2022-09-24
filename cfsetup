@@ -4,6 +4,7 @@ from modules.generate_readme import gen_readme
 from modules.get_html_data import get_html_data
 from modules.format_common import format_difficulty, format_name
 import re, os, argparse
+import shutil
 
 
 def setup_argparse() -> argparse.ArgumentParser:
@@ -50,6 +51,9 @@ if __name__ == "__main__":
     # Make the readme in the created folder.
     print("Making Readme")
     gen_readme(parser.url, difficulty+"/"+name+"/README.md")
+
+    # Copy the template file into the new directory.
+    shutil.copy("./template.cpp", f"{difficulty}/{name}/{name}.cpp")
     
     print("Finished")
 
