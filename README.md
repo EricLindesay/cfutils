@@ -91,7 +91,7 @@ Run Test IO name due to it testing the IO using stdin, rather than a function li
 Runs a test file using stdin as the input to the file. This can run any type of file but was meant to be used on c++ codeforces files.  
 
 ```
-runtest \<testfile\> \<files to test\>
+runtest <testfile> <files to test>
 ```
 
 ### Optional Params
@@ -111,4 +111,4 @@ testcase 2
 testcase 3    
 ```
 Testcases can be multiple lines.
-
+Note the 5 dashes.
